@@ -1,5 +1,17 @@
 package edu.gettysburg.pokersquares;
 
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +27,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.graphics.Color;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -22,6 +35,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import edu.gettysburg.ai.*;
 
 public class MainActivity extends Activity implements View.OnClickListener {
 	private Stack<Card> 				deck; 
@@ -36,11 +50,60 @@ public class MainActivity extends Activity implements View.OnClickListener {
 	private boolean 					isMuted = false;
 	private MediaPlayer 				mp      = new MediaPlayer();
 	private String						userName;
+	//private AAFinalPokerSquarePlayer player = new AAFinalPokerSquarePlayer();
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+
+		//startService(new Intent(this, bgService.class));
+		//stopService(new Intent(this, bgService.class));
+		//System.out.println("Working Directory = " + System.getProperty("user.dir"));
+
+
+
+		/*
+		AssetManager am = this.getAssets();
+		try {
+			FileInputStream fis = new FileInputStream(mapFile);
+			ObjectInputStream ois = new ObjectInputStream(fis);
+			absMap = (HashMap<String, NARLPokerSquaresPlayer.RLNode>) ois.readObject();
+			InputStream is = am.open("test.txt");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+
+		/*
+		File temp;
+		try {
+			temp = File.createTempFile("i-am-a-temp-file", ".tmp" );
+			String absolutePath = temp.getAbsolutePath();
+		 	System.out.println("File path : " + absolutePath);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}*/
+
+		//File newFile = new File("narl.dat");
+		//System.out.println(newFile.isFile());
+		//System.out.println(this.getFilesDir());
+
+		/**
+		 * This thread reserved for AI player for now...
+		 * The final, expectimax, and all other players will run, 
+		 * but run into garbage collection and time out since they are apparently extremely memory intensive...
+		 */
+		new Thread(new Runnable() {
+			public void run() {
+				Thread.yield();
+	
+				//ExpectimaxNARLPokerSquaresPlayer3 player = new ExpectimaxNARLPokerSquaresPlayer3(21);
+				//AAFinalPokerSquarePlayer.start();
+
+			}}).start();
 		
 		// Get userName from SplashScreen activity
 		Bundle bundle = getIntent().getExtras();
@@ -52,20 +115,20 @@ public class MainActivity extends Activity implements View.OnClickListener {
 			TextView toAdd = (TextView) findViewById(resourceID);
 			textMap.put("view"+i, toAdd);
 		}
-		
+
 		textTotal 		 = (TextView) findViewById(R.id.textTotal);
 		textTotalString  = (TextView) findViewById(R.id.textTotalString);
-		
+
 		// Initialize card deck, then shuffle it (arbitrarily) three times to ensure randomness
 		deck 			 = Card.initialize();
 		Collections.shuffle(deck);
 		Collections.shuffle(deck);
 		Collections.shuffle(deck);
-		
+
 		// For clarity on colored backgrounds...
 		textTotal.setShadowLayer(7, 0, 0, Color.BLACK);
 		textTotalString.setShadowLayer(7, 0, 0, Color.BLACK);
-		
+
 		// Get resources for all of the ImageViews, set their onClickListener, and then add them to them hashMap of ImageViews using its ID as the key
 		for(int r=1; r<6; r++) {
 			for(int c=1; c<6; c++) {
@@ -85,7 +148,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		int resourceID  = getResources().getIdentifier(fileName, "drawable", getPackageName());
 		deckView.setImageResource(resourceID);
 	}
-	
+
 	/**
 	 * The method that is called each time any ImageView is pressed in the program. 
 	 */
@@ -118,13 +181,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		updateArray();
 		checkScoreUpdateLabels();
 		updateTotal();
-		
+
 		// When the game ends...
 		if(moves==25) {
 			endGame();
 		}
 	}
-	
+
 	/**
 	 * Uses a temporary List to gather elements from the master array[][]  
 	 * Puts List into the master ArrayList of Lists in order for computation purposes for the scoring
@@ -132,7 +195,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 	private void updateArray(){
 		List<Card> tmp = new LinkedList<Card>();
 		places = new ArrayList<List<Card>>(); 
-		
+
 		// Get [rows][cols]
 		for (int r=0; r<array.length; r++) {
 			for(int c=0; c<array[r].length; c++) {
@@ -143,9 +206,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
 			places.add(tmp);
 			tmp = new LinkedList<Card>();
 		}
-	
+
 		tmp = new LinkedList<Card>();
-		
+
 		// Get [cols][rows]
 		for (int r=0; r<array.length; r++) {
 			for(int c=0; c<array[r].length; c++) {
@@ -168,7 +231,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 			}
 			System.out.println();
 		}
-		*/
+		 */
 	}
 
 	/**
@@ -180,7 +243,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		checkScoreUpdateLabels();
 		deckView.setImageResource(getResources().getIdentifier("nblank", "drawable", getPackageName()));
 		updateTotal();
-		
+
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage("Game Over! \nCongratulations " + userName + "!" + " \nTotal score was " + textTotal.getText())       
 		.setCancelable(false)
@@ -200,13 +263,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
 				intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 				startActivity(intent);
 				MainActivity.this.finish();
-			}       
+			}
 		});
-		
+
 		AlertDialog alert = builder.create();
 		alert.show();
 	}
-	
+
 	/**
 	 * Play the place sound when a user clicks on a click-able ImageView. 
 	 * For Reference: Sound defined in res/raw/cardplace.wav
@@ -237,7 +300,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		for(int i=0; i<places.size(); i++) {
 			List<Card> tmp = places.get(i);
 			int sectionTotal = 0;
-			
+
 			if(tmp.size()==5 && Card.isRoyalFlush(tmp)) {
 				sectionTotal+=100;
 			}
@@ -265,11 +328,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
 			else if(tmp.size()>=2 && Card.hasPair(tmp)) {
 				sectionTotal+=2;
 			}
-	
+
 			textMap.get("view"+ i).setText(String.valueOf(sectionTotal));
 		}
 	}
-	
+
 	/**
 	 * Scrape the values of each of the views and add them all together for the total.
 	 */
@@ -280,7 +343,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		}
 		textTotal.setText(String.valueOf(total));
 	}
-	
+
 	/**
 	 * When the user presses the physical back button on their device, properly finish the Intent and exit the application
 	 */
@@ -293,13 +356,15 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		finish();
 	}
 
-	  /*****************************************************************************************************/
-	 /** Save instance variables for when the application is tilted to either landscape or portrait mode **/
-	/*****************************************************************************************************/
+
+	/**
+	 * Save instance variables for when the application is tilted to either landscape or portrait mode 
+	 */
+
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		super.onSaveInstanceState(outState);
-		
+
 		/*
 		outState.putSerializable("deck", deck);
 		outState.putSerializable("places", places);
@@ -311,21 +376,21 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		outState.putInt("moves", moves);
 		outState.putBoolean("isMuted", isMuted);
 		outState.putString("userName", userName);
-		*/
-		
+		 */
+
 		/*
 	private ImageView  					deckView;
 	private MediaPlayer 				mp      = new MediaPlayer();
 		 */
 	}
 
-	  /********************************************************************************************************/
-	 /** Restore instance variables for when the application is tilted to either landscape or portrait mode **/
-	/********************************************************************************************************/
+	/**
+	 * Restore instance variables for when the application is tilted to either landscape or portrait mode 
+	 */
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
 		super.onRestoreInstanceState(savedInstanceState);
-		
+
 		/*
 		setNumReds(savedInstanceState.getInt("textViewNumReds", 0));
 		setNumGreens(savedInstanceState.getInt("textViewNumGreens", 0));
@@ -342,9 +407,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
 		userStartGame = savedInstanceState.getBoolean("userStartGame", true);
 		isUserTurn = savedInstanceState.getBoolean("isUserTurn", true);
 		setButtonsState();
-		*/
+		 */
 	}
-	
+
 	/**
 	 * Method to determine functionality of the menu items when they are pressed. 
 	 * For Reference: Menu items defined in res/menu/my_options_menu.xml
@@ -356,18 +421,18 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
 			return true;
 		case R.id.stats:
-			
+
 			return true;
 		case R.id.mute:
 			if(isMuted) {
 				Toast.makeText(getApplicationContext(), "Sound Un-Muted",
-						   Toast.LENGTH_SHORT).show();
+						Toast.LENGTH_SHORT).show();
 				item.setTitle("Mute");
 				isMuted=!isMuted;
 			}
 			else {
 				Toast.makeText(getApplicationContext(), "Sound Muted",
-						   Toast.LENGTH_SHORT).show();
+						Toast.LENGTH_SHORT).show();
 				item.setTitle("Un-Mute");
 				isMuted=!isMuted;
 			}
